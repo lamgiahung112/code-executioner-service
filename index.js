@@ -20,16 +20,34 @@ async function consume() {
 	channel.bindQueue(exchange, exchange, routingKey)
 
 	console.log(`Waiting for message in exchange ${exchange}`)
+	channel.publish(exchange, routingKey, Buffer.from("Service started"))
 
 	channel.consume(
 		exchange,
 		(msg) => {
-			const message = msg.content.toString()
-			console.log(message)
-			channel.publish(exchange, routingKey, Buffer.from("alo alo"))
+			handleIncomingMessages(msg).then((result) => {
+				console.log(msg.content.toString())
+				channel.publish(exchange, routingKey, Buffer.from(result))
+			})
 		},
-		{ noAck: true }
+		{ noAck: false }
 	)
+}
+
+async function handleIncomingMessages(message) {
+	const data = JSON.parse(message.content.toString())
+
+	if (
+		Object.keys(data).includes("problemId") &&
+		Object.keys(data).includes("testcases")
+	) {
+		return await handleSaveTestCaseMessage(data)
+	}
+	return "alo 123"
+}
+
+async function handleSaveTestCaseMessage(data) {
+	return `I got sent problemId ${data.problemId} & ${data.testcases.length} testcases`
 }
 
 consume().catch(console.log)

@@ -1,4 +1,5 @@
 const amqp = require("amqplib")
+const testcaseHandler = require("./testcaseHandler")
 
 const host = process.argv[2]
 const port = process.argv[3]
@@ -41,13 +42,10 @@ async function handleIncomingMessages(message) {
 		Object.keys(data).includes("problemId") &&
 		Object.keys(data).includes("testcases")
 	) {
-		return await handleSaveTestCaseMessage(data)
+		console.log(JSON.stringify(data.testcases))
+		return await testcaseHandler(data.problemId, JSON.stringify(data.testcases))
 	}
 	return "alo 123"
-}
-
-async function handleSaveTestCaseMessage(data) {
-	return `I got sent problemId ${data.problemId} & ${data.testcases.length} testcases`
 }
 
 consume().catch(console.log)

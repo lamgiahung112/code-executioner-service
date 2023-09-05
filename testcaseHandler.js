@@ -8,5 +8,6 @@ module.exports = async (problemId, testcases) => {
 	})
 	return JSON.stringify({
 		testcasePath: filePath,
+		problemId,
 	})
 }

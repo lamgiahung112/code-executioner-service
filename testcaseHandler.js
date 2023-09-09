@@ -1,13 +1,21 @@
 const fs = require("fs")
 const path = require("path")
 
-module.exports = async (problemId, testcases) => {
-	const filePath = path.resolve(`./testcases/${problemId}.json`)
-	fs.writeFile(filePath, testcases, () => {
-		console.log("Created testcase file for problem with id " + problemId)
+/**
+ *
+ * @param {{problemId: String, testcases: String}} data
+ * @param {(result: String) => void} callback
+ */
+module.exports = (data, callback) => {
+	const filePath = path.resolve(`./testcases/${data.problemId}.json`)
+	fs.writeFile(filePath, data.testcases, () => {
+		console.log("Created testcase file for problem with id " + data.problemId)
 	})
-	return JSON.stringify({
-		testcasePath: filePath,
-		problemId,
-	})
+
+	callback(
+		JSON.stringify({
+			testcasePath: filePath,
+			problemId,
+		})
+	)
 }

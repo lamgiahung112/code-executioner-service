@@ -2,6 +2,7 @@ const amqp = require("amqplib")
 
 const setupDirs = require("./setupDirs")
 const testcaseHandler = require("./testcaseHandler")
+const codeExecutionHandler = require("./codeExecutionHandler")
 
 const host = process.argv[2]
 const port = process.argv[3]
@@ -31,31 +32,58 @@ async function consume() {
 
 	channel.consume(
 		exchanges.CONSUME,
-		(msg) => {
-			handleIncomingMessages(msg).then((result) => {
-				channel.publish(
-					exchanges["TESTCASE-SAVING"],
-					routingKey,
-					Buffer.from(result)
-				)
-			})
+		async (msg) => {
+			await handleIncomingMessages(msg)
 		},
 		{ noAck: false }
 	)
-}
 
-async function handleIncomingMessages(message) {
-	try {
-		const data = JSON.parse(message.content.toString())
+	async function handleIncomingMessages(message) {
+		try {
+			const data = JSON.parse(message.content.toString())
 
-		if (
-			Object.keys(data).includes("problemId") &&
-			Object.keys(data).includes("testcases")
-		) {
-			return await testcaseHandler(data.problemId, JSON.stringify(data.testcases))
+			if (
+				Object.keys(data).includes("problemId") &&
+				Object.keys(data).includes("testcases")
+			) {
+				return testcaseHandler(
+					{
+						problemId: data.problemId,
+						testcases: JSON.stringify(data.testcases),
+					},
+					(result) => {
+						channel.publish(
+							exchanges["TESTCASE-SAVING"],
+							routingKey,
+							Buffer.from(result)
+						)
+					}
+				)
+			}
+
+			if (
+				Object.keys(data).includes("code") &&
+				Object.keys(data).includes("problemId") &&
+				Object.keys(data).includes("userId")
+			) {
+				return await codeExecutionHandler(
+					{
+						code: data.code,
+						problemId: data.problemId,
+						userId: data.userId,
+					},
+					(result) => {
+						channel.publish(
+							exchanges["CODE-EXECUTION"],
+							routingKey,
+							Buffer.from(result)
+						)
+					}
+				)
+			}
+		} catch {
+			console.log("Error parsing data sent from server!")
 		}
-	} catch {
-		return ""
 	}
 }
 

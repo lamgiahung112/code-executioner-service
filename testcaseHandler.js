@@ -15,7 +15,7 @@ module.exports = (data, callback) => {
 	callback(
 		JSON.stringify({
 			testcasePath: filePath,
-			problemId,
+			problemId: data.problemId,
 		})
 	)
 }

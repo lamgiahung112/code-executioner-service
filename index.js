@@ -52,6 +52,7 @@ async function consume() {
 						testcases: JSON.stringify(data.testcases),
 					},
 					(result) => {
+						channel.ack(message)
 						channel.publish(
 							exchanges["TESTCASE-SAVING"],
 							routingKey,
@@ -73,6 +74,7 @@ async function consume() {
 						userId: data.userId,
 					},
 					(result) => {
+						channel.ack(message)
 						channel.publish(
 							exchanges["CODE-EXECUTION"],
 							routingKey,
@@ -81,8 +83,9 @@ async function consume() {
 					}
 				)
 			}
-		} catch {
-			console.log("Error parsing data sent from server!")
+		} catch (e) {
+			console.error("Error parsing data sent from server!")
+			console.error(e.message)
 		}
 	}
 }

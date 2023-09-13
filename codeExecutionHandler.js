@@ -32,7 +32,7 @@ module.exports = async (data, callback) => {
 
 				return {
 					time,
-					result: JSON.stringify(result),
+					output: JSON.stringify(result),
 					memory,
 					isPassed,
 				}

@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js localhost 5672 trikohung sahdiukhqJKAUKIQ23sdsd189229aQDS123 code_execution_queue ROUTE-ACCESS-KEY"
   },
   "keywords": [],
   "author": "",

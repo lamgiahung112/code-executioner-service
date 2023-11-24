@@ -4,7 +4,7 @@ const crypto = require("crypto")
 const vm = require("vm")
 /**
  *
- * @param {{code: String, problemId: String, userId: String}} data
+ * @param {{code: String, submissionId: String, problemId: String}} data
  * @param {(result: String) => void} callback
  */
 module.exports = async (data, callback) => {
@@ -20,7 +20,19 @@ module.exports = async (data, callback) => {
 
 		Promise.all(
 			parsedTestData.map(async (test) => {
-				const appendix = `const ${uniqueStartMemVar}=memnow();const ${uniqueStartTimeVar}=perfnow();const ${uniqueResultVar}=${test.test};const ${uniqueEndTimeVar}=perfnow();const ${uniqueEndMemVar}=memnow();done([${uniqueEndTimeVar}-${uniqueStartTimeVar},${uniqueResultVar},(${uniqueEndMemVar}.heapUsed-${uniqueStartMemVar}.heapUsed)/1024/1024])`
+				const appendix = `
+					const ${uniqueStartMemVar}=memnow();
+					const ${uniqueStartTimeVar}=perfnow();
+					const ${uniqueResultVar}=${test.test};
+					const ${uniqueEndTimeVar}=perfnow();
+					const ${uniqueEndMemVar}=memnow();
+					done(
+						[
+							${uniqueEndTimeVar}-${uniqueStartTimeVar},
+							${uniqueResultVar},
+							(${uniqueEndMemVar}.heapUsed-${uniqueStartMemVar}.heapUsed)/1024/1024
+						]
+					)`
 				const codeResult = await _runWithTimeout(
 					`try{${data.code};${appendix};}catch(err){done([0,err.message,0])}`,
 					1000
@@ -30,6 +42,12 @@ module.exports = async (data, callback) => {
 				const result = codeResult[1]
 				const memory = codeResult[2]
 
+				console.log({
+					time,
+					output: JSON.stringify(result),
+					memory,
+					isPassed,
+				})
 				return {
 					time,
 					output: JSON.stringify(result),
@@ -41,8 +59,7 @@ module.exports = async (data, callback) => {
 			callback(
 				JSON.stringify({
 					result,
-					problemId: data.problemId,
-					userId: data.userId,
+					submissionId: data.submissionId,
 					completedAt: new Date().getTime(),
 				})
 			)
@@ -53,7 +70,7 @@ module.exports = async (data, callback) => {
 /**
  *
  * @param {String} jsCode
- * @param {Number} timeout
+ * @param {Number} timeoutMs
  * @returns {Promise<[Number, String, Number]>}
  */
 async function _runWithTimeout(jsCode, timeoutMs) {

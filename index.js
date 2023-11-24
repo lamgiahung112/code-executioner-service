@@ -64,14 +64,14 @@ async function consume() {
 
 			if (
 				Object.keys(data).includes("code") &&
-				Object.keys(data).includes("problemId") &&
-				Object.keys(data).includes("userId")
+				Object.keys(data).includes("submissionId") &&
+				Object.keys(data).includes("problemId")
 			) {
 				return await codeExecutionHandler(
 					{
 						code: data.code,
+						submissionId: data.submissionId,
 						problemId: data.problemId,
-						userId: data.userId,
 					},
 					(result) => {
 						channel.ack(message)
